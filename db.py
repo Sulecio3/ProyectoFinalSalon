@@ -133,3 +133,111 @@ def eliminar_sede(sede_id: int):
     cur.execute("DELETE FROM sedes WHERE id=?", (sede_id,))
     conn.commit()
     conn.close()
+
+#-----------------------------------------------------------------INVENTARIO-------------------------------------------
+def crear_tabla_sedes():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS sedes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            ubicacion TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def ensure_sedes_iniciales():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM sedes")
+    n = cur.fetchone()[0]
+    if n == 0:
+        cur.execute("INSERT INTO sedes(nombre, ubicacion) VALUES (?, ?)",
+                    ("Salon de uñas", "Ubicación"))
+        cur.execute("INSERT INTO sedes(nombre, ubicacion) VALUES (?, ?)",
+                    ("Salon de cabello", "Ubicación"))
+    conn.commit()
+    conn.close()
+
+def listar_sedes():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, nombre, ubicacion FROM sedes ORDER BY id ASC")
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+def obtener_sede(sede_id: int):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, nombre, ubicacion FROM sedes WHERE id=?", (sede_id,))
+    row = cur.fetchone()
+    conn.close()
+    return row
+
+def insertar_sede(nombre: str, ubicacion: str):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO sedes(nombre, ubicacion) VALUES (?, ?)", (nombre, ubicacion))
+    conn.commit()
+    conn.close()
+
+def eliminar_sede(sede_id: int):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM sedes WHERE id=?", (sede_id,))
+    conn.commit()
+    conn.close()
+
+def crear_tabla_inventario():
+    conn = get_connection()
+    conn.execute("PRAGMA foreign_keys = ON")
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS inventario (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sede_id INTEGER NOT NULL,
+            nombre TEXT NOT NULL,
+            stock INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY(sede_id) REFERENCES sedes(id) ON DELETE CASCADE
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def listar_inventario(sede_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, nombre, stock FROM inventario WHERE sede_id=?", (sede_id,))
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+def insertar_producto(sede_id, nombre, stock):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO inventario(sede_id, nombre, stock) VALUES (?,?,?)",
+        (sede_id, nombre, int(stock)),
+    )
+    conn.commit()
+    conn.close()
+
+def actualizar_producto(pid, nombre, stock):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE inventario SET nombre=?, stock=? WHERE id=?",
+        (nombre, int(stock), int(pid)),
+    )
+    conn.commit()
+    conn.close()
+
+def eliminar_producto(pid):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM inventario WHERE id=?", (int(pid),))
+    conn.commit()
+    conn.close()

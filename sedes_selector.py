@@ -1,113 +1,86 @@
 import tkinter as tk
-import tkinter.ttk as ttk
-from tkinter import simpledialog, messagebox
+from tkinter import messagebox
 import db
+from inventario import InventarioWindow
 
-COLOR_BG = "#FFF7E9"
-COLOR_PANEL = "#EDCDBF"
-COLOR_CARD = "#CC6B5A"
-COLOR_TXT = "#000000"
+COLOR_BG    = "#F7FFF7"
+COLOR_PANEL = "#D9FFE1"
+COLOR_CARD  = "#7CE5A3"
+COLOR_TXT   = "#000000"
 
 class SeleccionSede(tk.Toplevel):
-    def __init__(self, master=None, on_open_sede=None):
+    def __init__(self, master=None):
         super().__init__(master)
         self.title("Selección de sede")
-        self.geometry("900x550")
+        self.geometry("950x560")
         self.resizable(False, False)
         self.configure(bg=COLOR_BG)
-        self.on_open_sede = on_open_sede
         self.sede_seleccionada_id = None
-
-        panel = tk.Frame(self, bg=COLOR_PANEL, bd=0, highlightthickness=0)
-        panel.place(relx=0.5, rely=0.52, anchor="center", width=840, height=440)
-
-
-        lbl = tk.Label(self, text="Selección de sede",
-                       bg=COLOR_BG, fg=COLOR_TXT,
-                       font=("Segoe UI", 28, "bold"))
-        lbl.pack(pady=(15, 10))
-
-        self.cards_area = tk.Frame(panel, bg=COLOR_PANEL)
-        self.cards_area.place(x=20, y=20, width=800, height=350)
-
-        cont_botones = tk.Frame(panel, bg=COLOR_PANEL)
-        cont_botones.place(x=20, y=380, width=800, height=40)
-
-        btn_eliminar = tk.Button(cont_botones, text="Eliminar sede",
-                                 command=self.eliminar_sede,
-                                 bg=COLOR_CARD, fg=COLOR_TXT, bd=0, padx=12, pady=6, cursor="hand2")
-        btn_eliminar.pack(side="left")
-
-        btn_nueva = tk.Button(cont_botones, text="Nueva sede",
-                              command=self.nueva_sede,
-                              bg=COLOR_CARD, fg=COLOR_TXT, bd=0, padx=12, pady=6, cursor="hand2")
-        btn_nueva.pack(side="right")
 
         db.crear_tabla_sedes()
         db.ensure_sedes_iniciales()
 
-        self.render_cards()
+        tk.Label(self, text="Selección de sede", bg=COLOR_BG, fg=COLOR_TXT,
+                 font=("Segoe UI", 26, "bold")).pack(pady=(12, 6))
 
-    def render_cards(self):
+        panel = tk.Frame(self, bg=COLOR_PANEL)
+        panel.pack(expand=True, fill="both", padx=20, pady=20)
+
+        self.cards_area = tk.Frame(panel, bg=COLOR_PANEL)
+        self.cards_area.place(relx=0.5, rely=0.52, anchor="center", width=860, height=420)
+
+        cont_btn = tk.Frame(panel, bg=COLOR_PANEL)
+        cont_btn.place(x=20, y=370, width=820, height=44)
+
+        tk.Button(cont_btn, text="Eliminar sede", bg=COLOR_CARD, fg=COLOR_TXT, bd=0,
+                  cursor="hand2", command=self._eliminar).pack(side="left", padx=4)
+        tk.Button(cont_btn, text="Nueva sede", bg=COLOR_CARD, fg=COLOR_TXT, bd=0,
+                  cursor="hand2", command=self._nueva).pack(side="right", padx=4)
+
+        self._render()
+
+    # ---------- UI ----------
+    def _render(self):
         for w in self.cards_area.winfo_children():
             w.destroy()
-
         sedes = db.listar_sedes()
-        col = 0
-        row = 0
-        max_cols = 2
 
+        col, row, max_cols = 0, 0, 2
         for (sid, nombre, ubicacion) in sedes:
-            card = tk.Frame(self.cards_area, bg=COLOR_CARD, bd=0, highlightthickness=0)
-            card.bind("<Button-1>", lambda e, i=sid: self.seleccionar_sede(i))
+            card = tk.Frame(self.cards_area, bg=COLOR_CARD)
             card.grid(row=row, column=col, padx=60, pady=20, ipadx=80, ipady=80)
+            card.bind("<Button-1>", lambda e, i=sid: self._abrir_inventario(i))
 
-            lbl_nombre = tk.Label(card, text=nombre, bg=COLOR_CARD, fg=COLOR_TXT,
-                                  font=("Segoe UI", 18, "bold"))
-            lbl_nombre.pack()
-            lbl_ubi = tk.Label(card, text=ubicacion, bg=COLOR_CARD, fg=COLOR_TXT,
-                               font=("Segoe UI", 12, "bold"))
-            lbl_ubi.pack()
-
-            if self.sede_seleccionada_id == sid:
-                card.config(highlightbackground="#000000", highlightcolor="#000000", highlightthickness=3)
-            else:
-                card.config(highlightthickness=0)
+            tk.Label(card, text=nombre, bg=COLOR_CARD, fg=COLOR_TXT,
+                     font=("Segoe UI", 18, "bold")).pack()
+            tk.Label(card, text=ubicacion, bg=COLOR_CARD, fg=COLOR_TXT,
+                     font=("Segoe UI", 12, "bold")).pack()
 
             col += 1
             if col >= max_cols:
                 col = 0
                 row += 1
 
-    def seleccionar_sede(self, sede_id):
-        self.sede_seleccionada_id = sede_id
-        self.render_cards()
-        # Placeholder (aquí luego abrimos el menú propio de la sede)
-        info = db.obtener_sede(sede_id)
-        if info:
-            _, nombre, ubicacion = info
-            messagebox.showinfo("Sede seleccionada",
-                                f"Abriremos el menú de:\n\n{nombre}\n{ubicacion}\n\n(Pronto: más pantallas)")
+    def _abrir_inventario(self, sede_id: int):
+        InventarioWindow(self, sede_id)
 
-            if self.on_open_sede:
-                self.on_open_sede(sede_id)
-
-    def nueva_sede(self):
-        nombre = simpledialog.askstring("Nueva sede", "Nombre de la sede:", parent=self)
+    def _nueva(self):
+        from tkinter import simpledialog
+        nombre = simpledialog.askstring("Nueva sede", "Nombre:", parent=self)
         if not nombre:
             return
-        ubicacion = simpledialog.askstring("Nueva sede", "Ubicación:", parent=self)
-        if not ubicacion:
-            ubicacion = "Ubicación"
-
+        ubicacion = simpledialog.askstring("Nueva sede", "Ubicación:", parent=self) or "Ubicación"
         db.insertar_sede(nombre.strip(), ubicacion.strip())
-        self.render_cards()
+        self._render()
 
-    def eliminar_sede(self):
-        if not self.sede_seleccionada_id:
-            messagebox.showwarning("Eliminar sede", "Primero selecciona una sede haciendo clic en una tarjeta.")
+    def _eliminar(self):
+        from tkinter import simpledialog
+        sid = simpledialog.askinteger("Eliminar sede", "ID de sede a eliminar:", parent=self, minvalue=1)
+        if not sid:
             return
-        if messagebox.askyesno("Eliminar sede", "¿Seguro que quieres eliminar la sede seleccionada?"):
-            db.eliminar_sede(self.sede_seleccionada_id)
-            self.sede_seleccionada_id = None
-            self.render_cards()
+        if not db.obtener_sede(sid):
+            messagebox.showerror("Eliminar", "No existe una sede con ese ID.")
+            return
+        if messagebox.askyesno("Eliminar", "¿Eliminar esta sede y su inventario?"):
+            db.eliminar_sede(sid)
+            self._render()
