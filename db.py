@@ -527,3 +527,113 @@ def asegurar_columnas_citas():
     except Exception:
         pass
     conn.close()
+
+def _iso_date(s):
+    # acepta 'YYYY-MM-DD' o datetime con zona local y devuelve 'YYYY-MM-DD'
+    return str(s)[:10]
+
+def listar_sedes_simple():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, nombre FROM sedes ORDER BY id ASC")
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+
+#------------------------------REPORTES----------------------------------------------------
+def listar_ventas_rango(fmin_iso: str, fmax_iso: str, sede_id: int | None):
+    fmin = _iso_date(fmin_iso)
+    fmax = _iso_date(fmax_iso)
+
+    conn = get_connection()
+    cur = conn.cursor()
+    if sede_id is None:
+        cur.execute("""
+            SELECT v.id, s.nombre, i.nombre, v.cantidad, v.precio_unitario, v.total, DATE(v.fecha)
+            FROM ventas v
+            JOIN inventario i ON i.id = v.producto_id
+            JOIN sedes s ON s.id = v.sede_id
+            WHERE DATE(v.fecha) BETWEEN ? AND ?
+            ORDER BY v.fecha ASC
+        """, (fmin, fmax))
+    else:
+        cur.execute("""
+            SELECT v.id, s.nombre, i.nombre, v.cantidad, v.precio_unitario, v.total, DATE(v.fecha)
+            FROM ventas v
+            JOIN inventario i ON i.id = v.producto_id
+            JOIN sedes s ON s.id = v.sede_id
+            WHERE v.sede_id=? AND DATE(v.fecha) BETWEEN ? AND ?
+            ORDER BY v.fecha ASC
+        """, (int(sede_id), fmin, fmax))
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+def total_ventas_rango(fmin_iso: str, fmax_iso: str, sede_id: int | None) -> float:
+    fmin = _iso_date(fmin_iso)
+    fmax = _iso_date(fmax_iso)
+    conn = get_connection()
+    cur = conn.cursor()
+    if sede_id is None:
+        cur.execute("""
+            SELECT COALESCE(SUM(total), 0.0)
+            FROM ventas
+            WHERE DATE(fecha) BETWEEN ? AND ?
+        """, (fmin, fmax))
+    else:
+        cur.execute("""
+            SELECT COALESCE(SUM(total), 0.0)
+            FROM ventas
+            WHERE sede_id=? AND DATE(fecha) BETWEEN ? AND ?
+        """, (int(sede_id), fmin, fmax))
+    val = cur.fetchone()[0] or 0.0
+    conn.close()
+    return float(val)
+
+def listar_citas_rango(fmin_iso: str, fmax_iso: str, sede_id: int | None):
+    fmin = _iso_date(fmin_iso)
+    fmax = _iso_date(fmax_iso)
+
+    conn = get_connection()
+    cur = conn.cursor()
+    if sede_id is None:
+        cur.execute("""
+            SELECT c.id, s.nombre, c.cliente, c.servicio, COALESCE(c.precio, 0.0), c.inicio, c.fin, c.fecha
+            FROM citas c
+            JOIN sedes s ON s.id = c.sede_id
+            WHERE c.fecha BETWEEN ? AND ?
+            ORDER BY c.fecha ASC, c.inicio ASC
+        """, (fmin, fmax))
+    else:
+        cur.execute("""
+            SELECT c.id, s.nombre, c.cliente, c.servicio, COALESCE(c.precio, 0.0), c.inicio, c.fin, c.fecha
+            FROM citas c
+            JOIN sedes s ON s.id = c.sede_id
+            WHERE c.sede_id=? AND c.fecha BETWEEN ? AND ?
+            ORDER BY c.fecha ASC, c.inicio ASC
+        """, (int(sede_id), fmin, fmax))
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+def total_citas_rango(fmin_iso: str, fmax_iso: str, sede_id: int | None) -> float:
+    fmin = _iso_date(fmin_iso)
+    fmax = _iso_date(fmax_iso)
+    conn = get_connection()
+    cur = conn.cursor()
+    if sede_id is None:
+        cur.execute("""
+            SELECT COALESCE(SUM(precio), 0.0)
+            FROM citas
+            WHERE fecha BETWEEN ? AND ?
+        """, (fmin, fmax))
+    else:
+        cur.execute("""
+            SELECT COALESCE(SUM(precio), 0.0)
+            FROM citas
+            WHERE sede_id=? AND fecha BETWEEN ? AND ?
+        """, (int(sede_id), fmin, fmax))
+    val = cur.fetchone()[0] or 0.0
+    conn.close()
+    return float(val)

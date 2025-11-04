@@ -1,10 +1,10 @@
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
-
 import db
 from sidebar import SideBar
-from ventas import VentasWindow
 from citas import CitasWindow
+from reportes import ReportesWindow
+from ventas import VentasWindow
 
 COLOR_BG     = "#FFF8E6"
 COLOR_PANEL  = "#FFE0A3"
@@ -28,9 +28,10 @@ class InventarioWindow(tk.Toplevel):
 
         self.sidebar = SideBar(
             self,
-            on_exit=self._cerrar,
+            on_exit=self.destroy,
             on_open_ventas=lambda: VentasWindow(self, self.sede_id),
-            on_open_calendario=lambda: CitasWindow(self, self.sede_id)
+            on_open_reportes=lambda: ReportesWindow(self),
+            on_open_calendario=lambda: CitasWindow(self, self.sede_id)  # ← ahora sí está soportado
         )
         self.sidebar.pack(side="left", fill="y")
 
