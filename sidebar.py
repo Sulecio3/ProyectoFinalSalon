@@ -12,10 +12,8 @@ class SideBar(tk.Frame):
         self.on_open_ventas = on_open_ventas
         self.on_open_calendario = on_open_calendario
 
-        # MUY IMPORTANTE: mantener ancho visible
         self.pack_propagate(False)
 
-        # Header/logo
         header = tk.Frame(self, bg=COLOR_LATERAL)
         header.pack(fill="x", pady=(10, 6))
 
@@ -24,7 +22,6 @@ class SideBar(tk.Frame):
         logo.create_text(60, 60, text="LOGO", fill="white", font=("Segoe UI", 12, "bold"))
         logo.pack()
 
-        # Botones
         def mk_btn(text, cmd):
             tk.Button(self, text=text, bg=COLOR_BTN, fg=COLOR_TXT, bd=0,
                       height=2, cursor="hand2", command=cmd).pack(fill="x", padx=16, pady=6)

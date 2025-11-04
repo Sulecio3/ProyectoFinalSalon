@@ -21,13 +21,11 @@ class InventarioWindow(tk.Toplevel):
         self.configure(bg=COLOR_BG)
         self.resizable(False, False)
 
-        # Asegurar tablas necesarias
         db.crear_tabla_inventario()
         db.asegurar_columna_precio()
         db.crear_tabla_ventas()
-        db.crear_tabla_citas()  # por si abren calendario desde aquí
+        db.crear_tabla_citas()
 
-        # --- Sidebar (SIEMPRE primero y a la izquierda) ---
         self.sidebar = SideBar(
             self,
             on_exit=self._cerrar,
@@ -36,7 +34,6 @@ class InventarioWindow(tk.Toplevel):
         )
         self.sidebar.pack(side="left", fill="y")
 
-        # --- Panel principal (a la derecha) ---
         panel = tk.Frame(self, bg=COLOR_PANEL)
         panel.pack(side="left", expand=True, fill="both", padx=20, pady=20)
 
@@ -45,7 +42,6 @@ class InventarioWindow(tk.Toplevel):
         tk.Label(panel, text=titulo, bg=COLOR_PANEL, fg=COLOR_TXT,
                  font=("Segoe UI", 20, "bold")).pack(pady=(6, 16))
 
-        # Tabla
         self.tree = ttk.Treeview(
             panel,
             columns=("Producto", "Existencias", "Precio (Q)"),
@@ -60,7 +56,6 @@ class InventarioWindow(tk.Toplevel):
         self.tree.column("Precio (Q)", width=120, anchor="center")
         self.tree.pack(fill="x", pady=6)
 
-        # Botonera
         barra = tk.Frame(panel, bg=COLOR_PANEL)
         barra.pack(pady=12)
 
@@ -81,7 +76,6 @@ class InventarioWindow(tk.Toplevel):
 
         self._cargar()
 
-    # -------- helpers --------
     def _cerrar(self):
         try:
             self.destroy()
@@ -99,7 +93,6 @@ class InventarioWindow(tk.Toplevel):
         for (pid, nombre, stock, precio) in productos:
             self.tree.insert("", "end", iid=str(pid), values=(nombre, int(stock), f"{float(precio):.2f}"))
 
-    # -------- acciones --------
     def _agregar(self):
         nombre = simpledialog.askstring("Nuevo producto", "Nombre:", parent=self)
         if not nombre:

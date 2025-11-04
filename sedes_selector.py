@@ -39,7 +39,6 @@ class SeleccionSede(tk.Toplevel):
 
         self._render()
 
-    # ---------- UI ----------
     def _render(self):
         for w in self.cards_area.winfo_children():
             w.destroy()
