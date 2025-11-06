@@ -2,25 +2,35 @@ import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
 import db
 
-COLOR_BG     = "#F3FFF5"
-COLOR_PANEL  = "#CFF5D2"
-COLOR_TXT    = "#000000"
-COLOR_BTN    = "#8BE28F"
+BG_PRIMARY = '#fccfd4'
+BG_SECONDARY = '#fccfd4'
+BG_CARDS = '#fccfd4'
+ACCENT = '#da5d86'
+TEXT = '#0b1011'
+BUTTONS = '#01a6b2'
+BUTTONS_SECONDARY = '#01a6b2'
+SUCCESS = '#7CE5A3'
+WARNING = '#FFD6A5'
+ERROR = '#FFB7B7'
+
 
 class VentasWindow(tk.Toplevel):
     def __init__(self, master, sede_id):
         super().__init__(master)
         self.sede_id = sede_id
         self.title("Ventas")
-        self.geometry("720x480")
-        self.configure(bg=COLOR_BG)
+        self.geometry("1366x768")
+        self.configure(bg=BG_PRIMARY)
 
-        panel = tk.Frame(self, bg=COLOR_PANEL)
+        btn_salir = tk.Button(self, text="x", bg=BUTTONS, fg=TEXT, bd=0, cursor="hand2", command=self.destroy)
+        btn_salir.place(x=1340, y=18, width=28, height=28)
+
+        panel = tk.Frame(self, bg=BG_CARDS)
         panel.pack(expand=True, fill="both", padx=20, pady=20)
 
         sede = db.obtener_sede(self.sede_id)
         titulo = f"Ventas — {sede[1]}" if sede else "Ventas"
-        tk.Label(panel, text=titulo, bg=COLOR_PANEL, fg=COLOR_TXT,
+        tk.Label(panel, text=titulo, bg=BG_CARDS, fg=TEXT,
                  font=("Segoe UI", 18, "bold")).pack(pady=(6, 12))
 
         self.tree = ttk.Treeview(panel, columns=("Producto", "Stock", "Precio (Q)"),
@@ -35,7 +45,7 @@ class VentasWindow(tk.Toplevel):
 
         self._cargar()
 
-        tk.Button(panel, text="VENDER", bg=COLOR_BTN, fg="black", bd=0,
+        tk.Button(panel, text="VENDER", bg=BUTTONS, fg="white", bd=0,
                   cursor="hand2", command=self._vender).pack(pady=8)
 
     def _cargar(self):

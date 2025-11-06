@@ -13,15 +13,21 @@ else:
 
 import db
 
-BG      = "#F7F2FF"
-PANEL   = "#E6DAFF"
-TXT     = "#000000"
-BTN     = "#CDB7FF"
+BG_PRIMARY = '#fccfd4'
+BG_SECONDARY = '#fccfd4'
+BG_CARDS = '#fccfd4'
+ACCENT = '#da5d86'
+TEXT = '#0b1011'
+BUTTONS = "#1d7c83"
+BUTTONS_SECONDARY = "#1b9199"
+SUCCESS = "#7CB2E5"
+WARNING = "#FFA5DC"
+ERROR = "#FFB7CF"
 
-OPEN_TIME_MIN   = 9 * 60
+OPEN_TIME_MIN = 9 * 60
 FIRST_START_MIN = 9 * 60 + 15
-CLOSE_TIME_MIN  = 19 * 60
-LAST_END_MIN    = 18 * 60 + 45
+CLOSE_TIME_MIN = 19 * 60
+LAST_END_MIN = 18 * 60 + 45
 
 EMP_UNIAS = ["Angelica", "Yoli"]
 
@@ -30,13 +36,13 @@ class CitasWindow(tk.Toplevel):
     def __init__(self, master, sede_id: int):
         super().__init__(master)
         self.title("Calendario y Citas")
-        self.geometry("1000x640")
-        self.configure(bg=BG)
+        self.geometry("1366x768")
+        self.configure(bg=BG_PRIMARY)
         self.resizable(False, False)
 
         if _TKCAL_ERROR is not None:
             tk.Label(self, text="Falta instalar tkcalendar (pip install tkcalendar)",
-                     bg=BG, fg="red", font=("Segoe UI", 12, "bold")).pack(pady=20)
+                     bg=BG_PRIMARY, fg="red", font=("Segoe UI", 12, "bold")).pack(pady=20)
             return
 
         self.sede_id = int(sede_id)
@@ -49,17 +55,17 @@ class CitasWindow(tk.Toplevel):
 
         self._stack_acciones = []
 
-        cont = tk.Frame(self, bg=PANEL)
+        cont = tk.Frame(self, bg=BG_CARDS)
         cont.pack(expand=True, fill="both", padx=16, pady=16)
 
         sede = db.obtener_sede(self.sede_id)
         titulo = f"Calendario — {sede[1]}" if sede else "Calendario"
-        tk.Label(cont, text=titulo, bg=PANEL, fg=TXT, font=("Segoe UI", 18, "bold")).pack(pady=(0, 8))
+        tk.Label(cont, text=titulo, bg=BG_CARDS, fg=TEXT, font=("Segoe UI", 18, "bold")).pack(pady=(0, 8))
 
-        cuerpo = tk.Frame(cont, bg=PANEL)
+        cuerpo = tk.Frame(cont, bg=BG_CARDS)
         cuerpo.pack(expand=True, fill="both")
 
-        izq = tk.Frame(cuerpo, bg=PANEL)
+        izq = tk.Frame(cuerpo, bg=BG_CARDS)
         izq.pack(side="left", fill="y", padx=(0, 12))
 
         hoy = date.today()
@@ -68,10 +74,10 @@ class CitasWindow(tk.Toplevel):
         self.cal.pack(padx=4, pady=4)
         self.cal.bind("<<CalendarSelected>>", lambda e: self._cargar())
 
-        der = tk.Frame(cuerpo, bg=PANEL)
+        der = tk.Frame(cuerpo, bg=BG_CARDS)
         der.pack(side="left", expand=True, fill="both")
 
-        self.badge = tk.Label(der, text=self.cal.get_date(), bg=PANEL, fg=TXT, font=("Segoe UI", 11, "bold"))
+        self.badge = tk.Label(der, text=self.cal.get_date(), bg=BG_CARDS, fg=TEXT, font=("Segoe UI", 11, "bold"))
         self.badge.pack(anchor="w", pady=(0, 6))
 
         self.tree = ttk.Treeview(
@@ -92,13 +98,13 @@ class CitasWindow(tk.Toplevel):
         self.tree.column("Empleada", width=120, anchor="center")
         self.tree.pack(fill="x", pady=4)
 
-        barra = tk.Frame(der, bg=PANEL)
+        barra = tk.Frame(der, bg=BG_CARDS)
         barra.pack(pady=8)
-        tk.Button(barra, text="+ NUEVA", bg=BTN, bd=0, command=self._nueva).pack(side="left", padx=4)
-        tk.Button(barra, text="MODIFICAR", bg=BTN, bd=0, command=self._modificar).pack(side="left", padx=4)
-        tk.Button(barra, text="ELIMINAR", bg=BTN, bd=0, command=self._eliminar).pack(side="left", padx=4)
-        tk.Button(barra, text="DESHACER (LIFO)", bg="#FFB7B7", bd=0, command=self._deshacer).pack(side="left", padx=12)
-        tk.Button(barra, text="CERRAR", bg="#FFD6A5", bd=0, command=self.destroy).pack(side="left", padx=12)
+        tk.Button(barra, text="+ NUEVA", bg=BUTTONS, bd=0, command=self._nueva).pack(side="left", padx=4)
+        tk.Button(barra, text="MODIFICAR", bg=BUTTONS, bd=0, command=self._modificar).pack(side="left", padx=4)
+        tk.Button(barra, text="ELIMINAR", bg=BUTTONS, bd=0, command=self._eliminar).pack(side="left", padx=4)
+        tk.Button(barra, text="DESHACER", bg=ERROR, bd=0, command=self._deshacer).pack(side="left", padx=12)
+        tk.Button(barra, text="CERRAR", bg=WARNING, bd=0, command=self.destroy).pack(side="left", padx=12)
 
         self._cargar()
 
@@ -110,7 +116,8 @@ class CitasWindow(tk.Toplevel):
         for (cid, cliente, servicio, inicio, fin, precio, empleada) in db.listar_citas(self.sede_id, fecha):
             self.tree.insert(
                 "", "end", iid=str(cid),
-                values=(cliente, servicio, f"{float(precio):.2f}", f"{inicio} - {fin}", empleada or ("Única" if not self.es_unias else "—"))
+                values=(cliente, servicio, f"{float(precio):.2f}", f"{inicio} - {fin}",
+                        empleada or ("Única" if not self.es_unias else "—"))
             )
 
     def _to_min(self, hhmm: str) -> int:
@@ -121,7 +128,8 @@ class CitasWindow(tk.Toplevel):
             if len(t) != 5 or t[2] != ":":
                 return False, "Formato de hora inválido. Usa HH:MM (ej. 09:30)."
             try:
-                h = int(t[:2]); m = int(t[3:])
+                h = int(t[:2]);
+                m = int(t[3:])
                 if not (0 <= h <= 23 and 0 <= m <= 59):
                     return False, "Hora fuera de rango."
             except Exception:
@@ -148,7 +156,7 @@ class CitasWindow(tk.Toplevel):
         rows = db.listar_citas(self.sede_id, fecha)
         if self.es_unias:
             for (_cid, _cli, _srv, _ini, _fin, _precio, _emp) in rows:
-                if (empleada or "").strip().lower() == ( (_emp or "").strip().lower() ):
+                if (empleada or "").strip().lower() == ((_emp or "").strip().lower()):
                     if self._traslapa(inicio, fin, _ini, _fin):
                         return True
             return False
@@ -225,7 +233,6 @@ class CitasWindow(tk.Toplevel):
             messagebox.showerror("Deshacer", f"No se pudo deshacer: {e}")
 
     def _time_choices(self):
-        # 09:15, 09:45, 10:15, ..., 18:45 (pasos de 30 min)
         mins = []
         t = FIRST_START_MIN
         while t <= LAST_END_MIN:
@@ -239,7 +246,7 @@ class CitasWindow(tk.Toplevel):
         fecha = self.cal.get_date()
         form = tk.Toplevel(self)
         form.title("Cita")
-        form.geometry("520x410" if self.es_unias else "520x370")
+        form.geometry("1366x768")
         form.resizable(False, False)
         form.grab_set()
         form.transient(self)
@@ -247,9 +254,11 @@ class CitasWindow(tk.Toplevel):
         panel = tk.Frame(form, padx=12, pady=12)
         panel.pack(fill="both", expand=True)
 
-        tk.Label(panel, text=f"Fecha: {fecha}", font=("Segoe UI", 10, "bold")).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
+        tk.Label(panel, text=f"Fecha: {fecha}", font=("Segoe UI", 10, "bold")).grid(row=0, column=0, columnspan=2,
+                                                                                    sticky="w", pady=(0, 10))
 
-        prev = {"cliente": "", "servicio": "", "inicio": "", "fin": "", "servicio_id": None, "servicio_nombre": "", "precio": 0.0, "empleada": None}
+        prev = {"cliente": "", "servicio": "", "inicio": "", "fin": "", "servicio_id": None, "servicio_nombre": "",
+                "precio": 0.0, "empleada": None}
         if actual:
             prev["cliente"] = actual[3] or ""
             prev["servicio"] = actual[4] or ""
@@ -293,7 +302,7 @@ class CitasWindow(tk.Toplevel):
             base_row = 3
 
         tk.Label(panel, text="Inicio:").grid(row=base_row, column=0, sticky="e", padx=6, pady=6)
-        tk.Label(panel, text="Fin:").grid(row=base_row+1, column=0, sticky="e", padx=6, pady=6)
+        tk.Label(panel, text="Fin:").grid(row=base_row + 1, column=0, sticky="e", padx=6, pady=6)
 
         horas = self._time_choices()
         var_inicio = tk.StringVar(value=prev["inicio"] if prev["inicio"] in horas else "")
@@ -302,10 +311,10 @@ class CitasWindow(tk.Toplevel):
         cb_inicio = ttk.Combobox(panel, values=horas, state="readonly", width=10, textvariable=var_inicio)
         cb_fin = ttk.Combobox(panel, values=horas, state="readonly", width=10, textvariable=var_fin)
         cb_inicio.grid(row=base_row, column=1, sticky="w")
-        cb_fin.grid(row=base_row+1, column=1, sticky="w")
+        cb_fin.grid(row=base_row + 1, column=1, sticky="w")
 
         barra = tk.Frame(panel)
-        barra.grid(row=base_row+2, column=0, columnspan=2, pady=(12, 0))
+        barra.grid(row=base_row + 2, column=0, columnspan=2, pady=(12, 0))
 
         def _guardar():
             cliente = (var_cliente.get() or "").strip()
@@ -373,5 +382,5 @@ class CitasWindow(tk.Toplevel):
             form.destroy()
             self._cargar()
 
-        tk.Button(barra, text="GUARDAR", bg=BTN, bd=0, command=_guardar).pack(side="left", padx=6)
+        tk.Button(barra, text="GUARDAR", bg=BUTTONS, bd=0, command=_guardar).pack(side="left", padx=6)
         tk.Button(barra, text="CANCELAR", bg="#E4E4E4", bd=0, command=form.destroy).pack(side="left", padx=6)

@@ -1,24 +1,29 @@
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
 import db
-from sidebar import SideBar
+from side_bar import SideBar
 from citas import CitasWindow
 from reportes import ReportesWindow
 from ventas import VentasWindow
 
-COLOR_BG     = "#FFF8E6"
-COLOR_PANEL  = "#FFE0A3"
-COLOR_BTN    = "#FFB86B"
-COLOR_TXT    = "#000000"
-
+BG_PRIMARY = '#fccfd4'
+BG_SECONDARY = '#fccfd4'
+BG_CARDS = '#fccfd4'
+ACCENT = '#da5d86'
+TEXT = '#0b1011'
+BUTTONS = '#01a6b2'
+BUTTONS_SECONDARY = '#01a6b2'
+SUCCESS = '#7CE5A3'
+WARNING = '#FFD6A5'
+ERROR = '#FFB7B7'
 
 class InventarioWindow(tk.Toplevel):
     def __init__(self, master, sede_id):
         super().__init__(master)
         self.sede_id = int(sede_id)
         self.title("Inventario")
-        self.geometry("980x620")
-        self.configure(bg=COLOR_BG)
+        self.geometry("1366x768")
+        self.configure(bg=BG_PRIMARY)
         self.resizable(False, False)
 
         db.crear_tabla_inventario()
@@ -31,16 +36,16 @@ class InventarioWindow(tk.Toplevel):
             on_exit=self.destroy,
             on_open_ventas=lambda: VentasWindow(self, self.sede_id),
             on_open_reportes=lambda: ReportesWindow(self),
-            on_open_calendario=lambda: CitasWindow(self, self.sede_id)  # ← ahora sí está soportado
+            on_open_calendario=lambda: CitasWindow(self, self.sede_id)
         )
         self.sidebar.pack(side="left", fill="y")
 
-        panel = tk.Frame(self, bg=COLOR_PANEL)
+        panel = tk.Frame(self, bg=BG_CARDS)
         panel.pack(side="left", expand=True, fill="both", padx=20, pady=20)
 
         sede = db.obtener_sede(self.sede_id)
         titulo = f"Inventario — {sede[1]}" if sede else "Inventario"
-        tk.Label(panel, text=titulo, bg=COLOR_PANEL, fg=COLOR_TXT,
+        tk.Label(panel, text=titulo, bg=BG_CARDS, fg=TEXT,
                  font=("Segoe UI", 20, "bold")).pack(pady=(6, 16))
 
         self.tree = ttk.Treeview(
@@ -57,21 +62,21 @@ class InventarioWindow(tk.Toplevel):
         self.tree.column("Precio (Q)", width=120, anchor="center")
         self.tree.pack(fill="x", pady=6)
 
-        barra = tk.Frame(panel, bg=COLOR_PANEL)
+        barra = tk.Frame(panel, bg=BG_CARDS)
         barra.pack(pady=12)
 
         tk.Button(
-            barra, text="AGREGAR PRODUCTO", bg=COLOR_BTN, fg="black", bd=0,
+            barra, text="AGREGAR PRODUCTO", bg=BUTTONS, fg="white", bd=0,
             cursor="hand2", command=self._agregar
         ).pack(side="left", padx=6)
 
         tk.Button(
-            barra, text="MODIFICAR PRODUCTO", bg=COLOR_BTN, fg="black", bd=0,
+            barra, text="MODIFICAR PRODUCTO", bg=BUTTONS, fg="white", bd=0,
             cursor="hand2", command=self._modificar
         ).pack(side="left", padx=6)
 
         tk.Button(
-            barra, text="ELIMINAR PRODUCTO", bg=COLOR_BTN, fg="black", bd=0,
+            barra, text="ELIMINAR PRODUCTO", bg=BUTTONS, fg="white", bd=0,
             cursor="hand2", command=self._eliminar
         ).pack(side="left", padx=6)
 

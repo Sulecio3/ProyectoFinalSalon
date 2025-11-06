@@ -3,35 +3,43 @@ import tkinter.ttk as ttk
 from datetime import date, timedelta
 import db
 
-COLOR_BG    = "#F5FBFF"
-COLOR_PANEL = "#D9EEFF"
-COLOR_TXT   = "#000000"
-COLOR_BTN   = "#9AD0FF"
-COLOR_BADGE = "#B7E0FF"
+BG_PRIMARY = '#fccfd4'
+BG_SECONDARY = '#fccfd4'
+BG_CARDS = '#fccfd4'
+ACCENT = '#da5d86'
+TEXT = '#0b1011'
+BUTTONS = '#01a6b2'
+BUTTONS_SECONDARY = '#01a6b2'
+SUCCESS = '#7CE5A3'
+WARNING = '#FFD6A5'
+ERROR = '#FFB7B7'
 
 
 class ReportesWindow(tk.Toplevel):
     def __init__(self, master):
         super().__init__(master)
         self.title("Reportes")
-        self.geometry("980x620")
-        self.configure(bg=COLOR_BG)
+        self.geometry("1366x768")
+        self.configure(bg=BG_PRIMARY)
         self.resizable(False, False)
 
-        cont = tk.Frame(self, bg=COLOR_PANEL)
+        btn_salir = tk.Button(self, text="x", bg=BUTTONS, fg=TEXT, bd=0, cursor="hand2", command=self.destroy)
+        btn_salir.place(x=1340, y=18, width=28, height=28)
+
+        cont = tk.Frame(self, bg=BG_CARDS)
         cont.pack(expand=True, fill="both", padx=16, pady=16)
 
         tk.Label(
             cont,
             text="Reportes (Ventas + Citas)",
-            bg=COLOR_PANEL, fg=COLOR_TXT,
-            font=("Segoe UI", 18, "bold")  # ← "Segoe" correcto
+            bg=BG_CARDS, fg=TEXT,
+            font=("Segoe UI", 18, "bold")
         ).pack(pady=(0, 10))
 
-        filtros = tk.Frame(cont, bg=COLOR_PANEL)
+        filtros = tk.Frame(cont, bg=BG_CARDS)
         filtros.pack(fill="x", padx=6, pady=(2, 8))
 
-        tk.Label(filtros, text="Sede:", bg=COLOR_PANEL).pack(side="left", padx=(0, 6))
+        tk.Label(filtros, text="Sede:", bg=BG_CARDS).pack(side="left", padx=(0, 6))
         sedes = [("0", "Todas")] + [(str(sid), nombre) for sid, nombre in db.listar_sedes_simple()]
         self.var_sede = tk.StringVar(value="0")
         cb_sede = ttk.Combobox(filtros, state="readonly",
@@ -39,20 +47,20 @@ class ReportesWindow(tk.Toplevel):
         cb_sede.pack(side="left", padx=(0, 12))
         cb_sede.current(0)
 
-        tk.Button(filtros, text="Diario (hoy)", bg=COLOR_BTN, bd=0,
+        tk.Button(filtros, text="Diario (hoy)", bg=BUTTONS, bd=0,
                   command=lambda: self._aplicar_rango("diario", cb_sede)).pack(side="left", padx=4)
-        tk.Button(filtros, text="Últimos 7 días", bg=COLOR_BTN, bd=0,
+        tk.Button(filtros, text="Últimos 7 días", bg=BUTTONS, bd=0,
                   command=lambda: self._aplicar_rango("7d", cb_sede)).pack(side="left", padx=4)
-        tk.Button(filtros, text="Mensual (actual)", bg=COLOR_BTN, bd=0,
+        tk.Button(filtros, text="Mensual (actual)", bg=BUTTONS, bd=0,
                   command=lambda: self._aplicar_rango("mensual", cb_sede)).pack(side="left", padx=4)
-        tk.Button(filtros, text="Anual (actual)", bg=COLOR_BTN, bd=0,
+        tk.Button(filtros, text="Anual (actual)", bg=BUTTONS, bd=0,
                   command=lambda: self._aplicar_rango("anual", cb_sede)).pack(side="left", padx=4)
 
         self.badge = tk.Label(cont, text="Rango: —",
-                              bg=COLOR_BADGE, fg=COLOR_TXT, font=("Segoe UI", 10, "bold"))
+                              bg=BUTTONS, fg="white", font=("Segoe UI", 10, "bold"))
         self.badge.pack(fill="x", padx=6, pady=(0, 8))
 
-        tabla_frame = tk.Frame(cont, bg=COLOR_PANEL)
+        tabla_frame = tk.Frame(cont, bg=BG_CARDS)
         tabla_frame.pack(expand=True, fill="both", padx=6, pady=6)
 
         cols = ("Tipo", "Concepto", "Cant/Cliente", "P.Unitario", "Total", "Fecha")
@@ -66,12 +74,12 @@ class ReportesWindow(tk.Toplevel):
         vsb.pack(side="right", fill="y")
         self.tree.configure(yscrollcommand=vsb.set)
 
-        total_frame = tk.Frame(cont, bg=COLOR_PANEL)
+        total_frame = tk.Frame(cont, bg=BG_CARDS)
         total_frame.pack(fill="x", padx=6, pady=(6, 0))
 
-        self.lbl_tv = tk.Label(total_frame, text="Total ventas: Q 0.00", bg=COLOR_PANEL, font=("Segoe UI", 10, "bold"))
-        self.lbl_tc = tk.Label(total_frame, text="Total citas: Q 0.00", bg=COLOR_PANEL, font=("Segoe UI", 10, "bold"))
-        self.lbl_tt = tk.Label(total_frame, text="TOTAL: Q 0.00", bg=COLOR_PANEL, font=("Segoe UI", 12, "bold"))
+        self.lbl_tv = tk.Label(total_frame, text="Total ventas: Q 0.00", bg=BG_CARDS, font=("Segoe UI", 10, "bold"))
+        self.lbl_tc = tk.Label(total_frame, text="Total citas: Q 0.00", bg=BG_CARDS, font=("Segoe UI", 10, "bold"))
+        self.lbl_tt = tk.Label(total_frame, text="TOTAL: Q 0.00", bg=BG_CARDS, font=("Segoe UI", 12, "bold"))
 
         self.lbl_tv.pack(side="left", padx=8)
         self.lbl_tc.pack(side="left", padx=8)
