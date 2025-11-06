@@ -266,10 +266,10 @@ class AppLogin(tk.Tk):
             self.btn_toggle_pwd = ttk.Button(form, text="👁", **btn_kwargs)
         self.btn_toggle_pwd.grid(row=3, column=1, padx=(4, 6), pady=4, sticky="w")
 
-        ttk.Label(form, text="Recuperar contraseña", style="Link.TLabel", cursor="hand2")\
-            .grid(row=4, column=0, sticky="w", padx=6, pady=(6, 0))
-        ttk.Label(form, style="Label.TLabel", font=("Segoe UI", 9))\
-            .grid(row=4, column=1, sticky="w", padx=6, pady=(6, 0))
+        link_rec = ttk.Label(form, text="Recuperar contraseña", style="Link.TLabel", cursor="hand2")
+        link_rec.grid(row=4, column=0, sticky="w", padx=6, pady=(6, 0))
+        link_rec.bind("<Button-1>", lambda e: self.recuperar())
+
 
         buttons = ttk.Frame(card, style="Main.TFrame")
         buttons.grid(row=5, column=0, columnspan=2, pady=(26, 0), sticky="w")
